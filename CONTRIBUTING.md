@@ -173,7 +173,7 @@ Furthermore, we have integrated a pre-commit GitHub Action into our workflow. Th
 
 To run the pre-commit tool, follow these steps:
 
-1. Install pre-commit by running the following command: `poetry install`. It will not only install pre-commit but also install all the deps and dev-deps of project
+1. Install pre-commit by running the following command: `poetry install --with dev`. It will not only install pre-commit but also install all the deps and dev-deps of project
 
 2. Once pre-commit is installed, navigate to the project's root directory.
 
@@ -195,7 +195,7 @@ So far, **there is no type checking with mypy**. See [issue](https://github.com/
 
 The `supervision` documentation is stored in a folder called `docs`. The project documentation is built using `mkdocs`.
 
-To run the documentation, install the project requirements with `poetry install --with docs`. Then, run `mkdocs serve` to start the documentation server.
+To run the documentation, install the project requirements with `poetry install --with dev`. Then, run `mkdocs serve` to start the documentation server.
 
 You can learn more about mkdocs on the [mkdocs website](https://www.mkdocs.org/).
 
