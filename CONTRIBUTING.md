@@ -195,7 +195,7 @@ So far, **there is no type checking with mypy**. See [issue](https://github.com/
 
 The `supervision` documentation is stored in a folder called `docs`. The project documentation is built using `mkdocs`.
 
-To run the documentation, install the project requirements with `poetry install --with dev`. Then, run `mkdocs serve` to start the documentation server.
+To run the documentation, install the project requirements with `poetry install --with docs`. Then, run `mkdocs serve` to start the documentation server.
 
 You can learn more about mkdocs on the [mkdocs website](https://www.mkdocs.org/).
 
