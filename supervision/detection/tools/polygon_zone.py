@@ -43,7 +43,7 @@ class PolygonZone:
         polygon: npt.NDArray[np.int64],
         frame_resolution_wh: Optional[Tuple[int, int]] = None,
         triggering_anchors: Iterable[Position] = (Position.BOTTOM_CENTER,),
-    ):
+    ) -> None:
         if frame_resolution_wh is not None:
             warnings.warn(
                 "The `frame_resolution_wh` parameter is no longer required and will be "
@@ -129,7 +129,7 @@ class PolygonZoneAnnotator:
         text_thickness: int = 1,
         text_padding: int = 10,
         display_in_zone_count: bool = True,
-    ):
+    ) -> None:
         self.zone = zone
         self.color = color
         self.thickness = thickness

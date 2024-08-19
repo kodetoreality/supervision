@@ -20,7 +20,7 @@ class KalmanFilter:
     observation model).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         ndim, dt = 4, 1.0
 
         self._motion_mat = np.eye(2 * ndim, 2 * ndim)

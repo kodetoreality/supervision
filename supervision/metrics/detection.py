@@ -41,7 +41,9 @@ def detections_to_tensor(
     return np.concatenate(arrays_to_concat, axis=1)
 
 
-def validate_input_tensors(predictions: List[np.ndarray], targets: List[np.ndarray]):
+def validate_input_tensors(
+    predictions: List[np.ndarray], targets: List[np.ndarray]
+) -> None:
     """
     Checks for shape consistency of input tensors.
     """

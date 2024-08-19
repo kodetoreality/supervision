@@ -201,7 +201,7 @@ class VertexLabelAnnotator:
         text_thickness: int = 1,
         text_padding: int = 10,
         border_radius: int = 0,
-    ):
+    ) -> None:
         """
         Args:
             color (Union[Color, List[Color]]): The color to use for each

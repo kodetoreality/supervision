@@ -140,7 +140,7 @@ class Detections:
             data=self.data,
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns the number of detections in the Detections object.
         """
@@ -1077,7 +1077,7 @@ class Detections:
             data=get_data_item(self.data, index),
         )
 
-    def __setitem__(self, key: str, value: Union[np.ndarray, List]):
+    def __setitem__(self, key: str, value: Union[np.ndarray, List]) -> None:
         """
         Set a value in the data dictionary of the Detections object.
 

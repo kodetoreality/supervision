@@ -354,7 +354,7 @@ class ImageSink:
         target_dir_path: str,
         overwrite: bool = False,
         image_name_pattern: str = "image_{:05d}.png",
-    ):
+    ) -> None:
         """
         Initialize a context manager for saving images.
 
@@ -392,7 +392,7 @@ class ImageSink:
 
         return self
 
-    def save_image(self, image: np.ndarray, image_name: Optional[str] = None):
+    def save_image(self, image: np.ndarray, image_name: Optional[str] = None) -> None:
         """
         Save a given image in the target directory.
 

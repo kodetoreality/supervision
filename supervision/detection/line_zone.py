@@ -67,7 +67,7 @@ class LineZone:
             Position.BOTTOM_LEFT,
             Position.BOTTOM_RIGHT,
         ),
-    ):
+    ) -> None:
         """
         Args:
             start (Point): The starting point of the line.
@@ -210,7 +210,7 @@ class LineZoneAnnotator:
         custom_out_text: Optional[str] = None,
         display_in_count: bool = True,
         display_out_count: bool = True,
-    ):
+    ) -> None:
         """
         Initialize the LineCounterAnnotator object with default values.
 

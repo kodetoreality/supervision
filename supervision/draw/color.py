@@ -54,7 +54,7 @@ LEGACY_COLOR_PALETTE = [
 ROBOFLOW_COLOR_PALETTE = ["C28DFC", "A351FB", "8315F9", "6706CE", "5905B3", "4D049A"]
 
 
-def _validate_color_hex(color_hex: str):
+def _validate_color_hex(color_hex: str) -> None:
     color_hex = color_hex.lstrip("#")
     if not all(c in "0123456789abcdefABCDEF" for c in color_hex):
         raise ValueError("Invalid characters in color hash")

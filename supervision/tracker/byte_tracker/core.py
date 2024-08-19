@@ -14,7 +14,7 @@ class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
     _external_count = 0
 
-    def __init__(self, tlwh, score, class_ids, minimum_consecutive_frames):
+    def __init__(self, tlwh, score, class_ids, minimum_consecutive_frames) -> None:
         # wait activate
         self._tlwh = np.asarray(tlwh, dtype=np.float32)
         self.kalman_filter = None
@@ -29,7 +29,7 @@ class STrack(BaseTrack):
 
         self.minimum_consecutive_frames = minimum_consecutive_frames
 
-    def predict(self):
+    def predict(self) -> None:
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
             mean_state[7] = 0
@@ -38,7 +38,7 @@ class STrack(BaseTrack):
         )
 
     @staticmethod
-    def multi_predict(stracks):
+    def multi_predict(stracks) -> None:
         if len(stracks) > 0:
             multi_mean = []
             multi_covariance = []
@@ -55,7 +55,7 @@ class STrack(BaseTrack):
                 stracks[i].mean = mean
                 stracks[i].covariance = cov
 
-    def activate(self, kalman_filter, frame_id):
+    def activate(self, kalman_filter, frame_id) -> None:
         """Start a new tracklet"""
         self.kalman_filter = kalman_filter
         self.internal_track_id = self.next_id()
@@ -74,7 +74,7 @@ class STrack(BaseTrack):
         self.frame_id = frame_id
         self.start_frame = frame_id
 
-    def re_activate(self, new_track, frame_id, new_id=False):
+    def re_activate(self, new_track, frame_id, new_id=False) -> None:
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.tlwh_to_xyah(new_track.tlwh)
         )
@@ -86,7 +86,7 @@ class STrack(BaseTrack):
             self.internal_track_id = self.next_id()
         self.score = new_track.score
 
-    def update(self, new_track, frame_id):
+    def update(self, new_track, frame_id) -> None:
         """
         Update a matched track
         :type new_track: STrack
@@ -149,7 +149,7 @@ class STrack(BaseTrack):
         return STrack._external_count
 
     @staticmethod
-    def reset_external_counter():
+    def reset_external_counter() -> None:
         STrack._external_count = 0
 
     @staticmethod
@@ -164,7 +164,7 @@ class STrack(BaseTrack):
         ret[2:] += ret[:2]
         return ret
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "OT_{}_({}-{})".format(
             self.internal_track_id, self.start_frame, self.end_frame
         )
@@ -246,7 +246,7 @@ class ByteTrack:
         minimum_matching_threshold: float = 0.8,
         frame_rate: int = 30,
         minimum_consecutive_frames: int = 1,
-    ):
+    ) -> None:
         self.track_activation_threshold = track_activation_threshold
         self.minimum_matching_threshold = minimum_matching_threshold
 
@@ -326,7 +326,7 @@ class ByteTrack:
 
             return detections
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Resets the internal state of the ByteTrack tracker.
 

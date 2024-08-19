@@ -99,7 +99,7 @@ class InferenceSlicer:
         overlap_filter: Union[OverlapFilter, str] = OverlapFilter.NON_MAX_SUPPRESSION,
         iou_threshold: float = 0.5,
         thread_workers: int = 1,
-    ):
+    ) -> None:
         if overlap_ratio_wh is not None:
             warn_deprecated(
                 "`overlap_ratio_wh` in `InferenceSlicer.__init__` is deprecated and "

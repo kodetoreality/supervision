@@ -15,7 +15,7 @@ class SupervisionWarnings(Warning):
     pass
 
 
-def format_warning(msg, category, filename, lineno, line=None):
+def format_warning(msg, category, filename, lineno, line=None) -> str:
     """
     Format a warning the same way as the default formatter, but also include the
     category name in the output.
@@ -31,7 +31,7 @@ else:
     warnings.simplefilter("always", SupervisionWarnings)
 
 
-def warn_deprecated(message: str):
+def warn_deprecated(message: str) -> None:
     """
     Issue a warning that a function is deprecated.
 
@@ -137,7 +137,7 @@ class classproperty(Generic[T]):
             ...
     """
 
-    def __init__(self, fget: Callable[..., T]):
+    def __init__(self, fget: Callable[..., T]) -> None:
         """
         Args:
             The function that is called when the property is accessed.

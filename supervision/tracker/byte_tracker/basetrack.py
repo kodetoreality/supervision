@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from enum import Enum
+from typing import NoReturn
 
 import numpy as np
 
@@ -14,7 +15,7 @@ class TrackState(Enum):
 class BaseTrack:
     _count = 0
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.track_id = 0
         self.is_activated = False
         self.state = TrackState.New
@@ -40,24 +41,24 @@ class BaseTrack:
         return BaseTrack._count
 
     @staticmethod
-    def reset_counter():
+    def reset_counter() -> None:
         BaseTrack._count = 0
         BaseTrack.track_id = 0
         BaseTrack.start_frame = 0
         BaseTrack.frame_id = 0
         BaseTrack.time_since_update = 0
 
-    def activate(self, *args):
+    def activate(self, *args) -> NoReturn:
         raise NotImplementedError
 
-    def predict(self):
+    def predict(self) -> NoReturn:
         raise NotImplementedError
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError
 
-    def mark_lost(self):
+    def mark_lost(self) -> None:
         self.state = TrackState.Lost
 
-    def mark_removed(self):
+    def mark_removed(self) -> None:
         self.state = TrackState.Removed

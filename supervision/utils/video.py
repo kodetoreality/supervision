@@ -82,7 +82,9 @@ class VideoSink:
         ```
     """  # noqa: E501 // docs
 
-    def __init__(self, target_path: str, video_info: VideoInfo, codec: str = "mp4v"):
+    def __init__(
+        self, target_path: str, video_info: VideoInfo, codec: str = "mp4v"
+    ) -> None:
         self.target_path = target_path
         self.video_info = video_info
         self.__codec = codec
@@ -102,7 +104,7 @@ class VideoSink:
         )
         return self
 
-    def write_frame(self, frame: np.ndarray):
+    def write_frame(self, frame: np.ndarray) -> None:
         """
         Writes a single video frame to the target video file.
 
@@ -216,7 +218,7 @@ class FPSMonitor:
     A class for monitoring frames per second (FPS) to benchmark latency.
     """
 
-    def __init__(self, sample_size: int = 30):
+    def __init__(self, sample_size: int = 30) -> None:
         """
         Args:
             sample_size (int): The maximum number of observations for latency

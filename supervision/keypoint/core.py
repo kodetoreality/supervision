@@ -561,7 +561,7 @@ class KeyPoints:
             data=get_data_item(self.data, index),
         )
 
-    def __setitem__(self, key: str, value: Union[np.ndarray, List]):
+    def __setitem__(self, key: str, value: Union[np.ndarray, List]) -> None:
         """
         Set a value in the data dictionary of the `sv.KeyPoints` object.
 
