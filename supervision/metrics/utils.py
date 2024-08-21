@@ -3,8 +3,6 @@ from typing import Tuple
 import numpy as np
 import numpy.typing as npt
 
-from supervision.detection.core import Detections
-
 
 def ensure_pandas_installed():
     try:

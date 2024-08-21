@@ -5,15 +5,10 @@ from itertools import zip_longest
 from typing import List, Union
 
 import numpy as np
-import numpy.typing as npt
 
 from supervision.detection.core import Detections
 from supervision.detection.utils import box_iou_batch
-from supervision.metrics.core import (
-    InternalMetricDataStore,
-    Metric,
-    MetricTarget,
-)
+from supervision.metrics.core import InternalMetricDataStore, Metric, MetricTarget
 from supervision.metrics.intersection_over_union import IntersectionOverUnion
 
 
@@ -41,7 +36,8 @@ class MeanAveragePrecision(Metric):
         self._is_store_shared = False
         self._store = InternalMetricDataStore(metric_target, class_agnostic)
         self._iou_metric = IntersectionOverUnion(
-            metric_target, class_agnostic, shared_data_store=self._store)
+            metric_target, class_agnostic, shared_data_store=self._store
+        )
 
         self.reset()
 
@@ -62,14 +58,14 @@ class MeanAveragePrecision(Metric):
             self._update(d1, d2)
 
         return self
-    
+
     def _update(
         self,
         data_1: Detections,
         data_2: Detections,
     ) -> None:
         self._store.update(data_1, data_2)
-        
+
     def compute(
         self,
     ) -> MeanAveragePrecisionResult:
@@ -129,18 +125,21 @@ class MeanAveragePrecision(Metric):
             ```
         """
         if self._metric_target != MetricTarget.BOXES:
-            raise ValueError(f"Unsupported metric target")
+            raise ValueError("Unsupported metric target")
 
-        predictions = [np.hstack([
-            self._store._data_1.data,
-            self._store._data_1.class_id[:, None],
-            self._store._data_1.confidence[:, None]
-        ])]
-        targets = [np.hstack([
-            self._store._data_2.data,
-            self._store._data_2.class_id[:, None]
-        ])]
-        
+        predictions = [
+            np.hstack(
+                [
+                    self._store._data_1.data,
+                    self._store._data_1.class_id[:, None],
+                    self._store._data_1.confidence[:, None],
+                ]
+            )
+        ]
+        targets = [
+            np.hstack([self._store._data_2.data, self._store._data_2.class_id[:, None]])
+        ]
+
         self._validate_input_tensors(predictions, targets)
         iou_thresholds = np.linspace(0.5, 0.95, 10)
         stats = []
@@ -312,9 +311,11 @@ class MeanAveragePrecision(Metric):
                 )
 
         return average_precisions
-    
+
     @staticmethod
-    def _validate_input_tensors(predictions: List[np.ndarray], targets: List[np.ndarray]):
+    def _validate_input_tensors(
+        predictions: List[np.ndarray], targets: List[np.ndarray]
+    ):
         """
         Checks for shape consistency of input tensors.
         """
