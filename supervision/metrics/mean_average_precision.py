@@ -10,7 +10,6 @@ from supervision.detection.core import Detections
 from supervision.detection.utils import box_iou_batch
 from supervision.metrics.core import Metric, MetricTarget
 from supervision.metrics.utils.internal_data_store import InternalMetricDataStore
-from supervision.metrics.intersection_over_union import IntersectionOverUnion
 from supervision.metrics.utils.object_size import ObjectSizeCategory
 
 
@@ -125,19 +124,55 @@ class MeanAveragePrecision(Metric):
         if self._metric_target != MetricTarget.BOXES:
             raise ValueError("Unsupported metric target")
 
-        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get()
-        result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
+        (
+            (predictions, prediction_classes, prediction_confidence),
+            (targets, target_classes, _),
+        ) = self._store.get()
+        result = self._compute(
+            predictions,
+            prediction_classes,
+            prediction_confidence,
+            targets,
+            target_classes,
+        )
 
-        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get(size_category=ObjectSizeCategory.SMALL)
-        small_result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
+        (
+            (predictions, prediction_classes, prediction_confidence),
+            (targets, target_classes, _),
+        ) = self._store.get(size_category=ObjectSizeCategory.SMALL)
+        small_result = self._compute(
+            predictions,
+            prediction_classes,
+            prediction_confidence,
+            targets,
+            target_classes,
+        )
         result.for_small_objects = small_result
 
-        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get(size_category=ObjectSizeCategory.MEDIUM)
-        medium_result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
+        (
+            (predictions, prediction_classes, prediction_confidence),
+            (targets, target_classes, _),
+        ) = self._store.get(size_category=ObjectSizeCategory.MEDIUM)
+        medium_result = self._compute(
+            predictions,
+            prediction_classes,
+            prediction_confidence,
+            targets,
+            target_classes,
+        )
         result.for_medium_objects = medium_result
 
-        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get(size_category=ObjectSizeCategory.LARGE)
-        large_result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
+        (
+            (predictions, prediction_classes, prediction_confidence),
+            (targets, target_classes, _),
+        ) = self._store.get(size_category=ObjectSizeCategory.LARGE)
+        large_result = self._compute(
+            predictions,
+            prediction_classes,
+            prediction_confidence,
+            targets,
+            target_classes,
+        )
         result.for_large_objects = large_result
 
         return result
@@ -358,6 +393,7 @@ class MeanAveragePrecision(Metric):
                     f"Targets must have shape (N, 5). Got {targets[0].shape} instead."
                 )
 
+
 @dataclass
 class MeanAveragePrecisionResult:
     map50_95: float
@@ -382,13 +418,19 @@ class MeanAveragePrecisionResult:
 
         indent = "  "
         if self.for_small_objects is not None:
-            indented_str = indent + str(self.for_small_objects).replace("\n", f"\n{indent}")
+            indented_str = indent + str(self.for_small_objects).replace(
+                "\n", f"\n{indent}"
+            )
             out_str += f"\nSmall objects:\n{indented_str}"
         if self.for_medium_objects is not None:
-            indented_str = indent + str(self.for_medium_objects).replace("\n", f"\n{indent}")
+            indented_str = indent + str(self.for_medium_objects).replace(
+                "\n", f"\n{indent}"
+            )
             out_str += f"\nMedium objects:\n{indented_str}"
         if self.for_large_objects is not None:
-            indented_str = indent + str(self.for_large_objects).replace("\n", f"\n{indent}")
+            indented_str = indent + str(self.for_large_objects).replace(
+                "\n", f"\n{indent}"
+            )
             out_str += f"\nLarge objects:\n{indented_str}"
 
         return out_str

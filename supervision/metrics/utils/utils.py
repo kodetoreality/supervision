@@ -1,10 +1,7 @@
-from enum import Enum
 from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
-
-from supervision.detection.core import Detections
 
 
 def ensure_pandas_installed():
@@ -67,9 +64,6 @@ def unify_pad_masks_shape(
     return results
 
 
-
 def len0_like(data: npt.NDArray) -> npt.NDArray:
     """Create an empty array with the same shape as input, but with 0 rows."""
     return np.empty((0, *data.shape[1:]), dtype=data.dtype)
-
-

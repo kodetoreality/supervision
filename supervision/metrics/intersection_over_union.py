@@ -11,8 +11,8 @@ import numpy.typing as npt
 from supervision.detection.core import Detections
 from supervision.detection.utils import box_iou_batch
 from supervision.metrics.core import Metric, MetricTarget
-from supervision.metrics.utils.utils import ensure_pandas_installed
 from supervision.metrics.utils.internal_data_store import InternalMetricDataStore
+from supervision.metrics.utils.utils import ensure_pandas_installed
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -109,8 +109,12 @@ class IntersectionOverUnion(Metric):
         """
         ious_by_class = {}
         for class_id in self._store.get_classes():
-            (data_array_1, _, _), (data_array_2, _, _) = self._store.get(class_id=class_id)
-            ious_by_class[class_id] = box_iou_batch(data_array_1, data_array_2).transpose()
+            (data_array_1, _, _), (data_array_2, _, _) = self._store.get(
+                class_id=class_id
+            )
+            ious_by_class[class_id] = box_iou_batch(
+                data_array_1, data_array_2
+            ).transpose()
         return IntersectionOverUnionResult(ious_by_class, self._metric_target)
 
 
@@ -131,7 +135,9 @@ class IntersectionOverUnionResult:
 
     def to_pandas(self) -> Dict[int, "pd.DataFrame"]:
         ensure_pandas_installed()
-        return {class_id: pd.DataFrame(iou) for class_id, iou in self.ious_by_class.items()}
+        return {
+            class_id: pd.DataFrame(iou) for class_id, iou in self.ious_by_class.items()
+        }
 
     def plot(self, class_id=None):
         """

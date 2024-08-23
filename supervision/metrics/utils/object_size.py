@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from enum import Enum
-import numpy as np
-import numpy.typing as npt
 from typing import TYPE_CHECKING
 
-from supervision.metrics.core import MetricTarget
+import numpy as np
+import numpy.typing as npt
+
 from supervision.config import ORIENTED_BOX_COORDINATES
+from supervision.metrics.core import MetricTarget
 
 if TYPE_CHECKING:
     from supervision.detection.core import Detections
 
-SIZE_THRESHOLDS = [
-    32 ** 2, 96 ** 2
-]
+SIZE_THRESHOLDS = [32**2, 96**2]
+
 
 class ObjectSizeCategory(Enum):
     ANY = -1
@@ -21,14 +21,17 @@ class ObjectSizeCategory(Enum):
     MEDIUM = 2
     LARGE = 3
 
-def get_object_size_category(data: npt.NDArray, metric_target: MetricTarget) -> npt.NDArray[np.int_]:
+
+def get_object_size_category(
+    data: npt.NDArray, metric_target: MetricTarget
+) -> npt.NDArray[np.int_]:
     """
     Get the size category of an object. Distinguish based on the metric target.
-    
+
     Args:
         data (np.ndarray): The object data, shaped (N, ...).
         metric_target (MetricTarget): Determines whether boxes, masks or oriented bounding boxes are used.
-    
+
     Returns:
         (np.ndarray) The size category of each object, matching
         the enum values of ObjectSizeCategory. Shaped (N,).
@@ -41,10 +44,11 @@ def get_object_size_category(data: npt.NDArray, metric_target: MetricTarget) -> 
         return get_obb_size_category(data)
     raise ValueError("Invalid metric type")
 
+
 def get_bbox_size_category(xyxy: npt.NDArray[np.float32]) -> npt.NDArray[np.int_]:
     """
     Get the size category of a bounding boxes array.
-    
+
     Args:
         xyxy (np.ndarray): The bounding boxes array shaped (N, 4).
 
@@ -58,17 +62,18 @@ def get_bbox_size_category(xyxy: npt.NDArray[np.float32]) -> npt.NDArray[np.int_
     width = xyxy[:, 2] - xyxy[:, 0]
     height = xyxy[:, 3] - xyxy[:, 1]
     areas = width * height
-    
+
     result = np.full(areas.shape, ObjectSizeCategory.ANY.value)
     result[areas < SIZE_THRESHOLDS[0]] = ObjectSizeCategory.SMALL.value
     result[areas < SIZE_THRESHOLDS[1]] = ObjectSizeCategory.MEDIUM.value
     result[areas >= SIZE_THRESHOLDS[1]] = ObjectSizeCategory.LARGE.value
     return result
 
+
 def get_mask_size_category(mask: npt.NDArray[np.bool_]) -> npt.NDArray[np.int_]:
     """
     Get the size category of detection masks.
-    
+
     Args:
         mask (np.ndarray): The mask array shaped (N, H, W).
 
@@ -87,10 +92,11 @@ def get_mask_size_category(mask: npt.NDArray[np.bool_]) -> npt.NDArray[np.int_]:
     result[areas >= SIZE_THRESHOLDS[1]] = ObjectSizeCategory.LARGE.value
     return result
 
+
 def get_obb_size_category(xyxyxyxy: npt.NDArray[np.float32]) -> npt.NDArray[np.int_]:
     """
     Get the size category of a oriented bounding boxes array.
-    
+
     Args:
         xyxyxyxy (np.ndarray): The bounding boxes array shaped (N, 8).
 
@@ -114,10 +120,13 @@ def get_obb_size_category(xyxyxyxy: npt.NDArray[np.float32]) -> npt.NDArray[np.i
     result[areas >= SIZE_THRESHOLDS[1]] = ObjectSizeCategory.LARGE.value
     return result
 
-def get_detection_size_category(detections: Detections, metric_target: MetricTarget = MetricTarget.BOXES) -> npt.NDArray[np.int_]:
+
+def get_detection_size_category(
+    detections: Detections, metric_target: MetricTarget = MetricTarget.BOXES
+) -> npt.NDArray[np.int_]:
     """
     Get the size category of a detections object.
-    
+
     Args:
         xyxyxyxy (np.ndarray): The bounding boxes array shaped (N, 8).
         metric_target (MetricTarget): Determines whether boxes, masks or oriented bounding boxes are used.
@@ -135,5 +144,7 @@ def get_detection_size_category(detections: Detections, metric_target: MetricTar
     if metric_target == MetricTarget.ORIENTED_BOUNDING_BOXES:
         if detections.data.get(ORIENTED_BOX_COORDINATES) is None:
             raise ValueError("Detections oriented bounding boxes are not available")
-        return get_obb_size_category(np.array(detections.data[ORIENTED_BOX_COORDINATES]))
+        return get_obb_size_category(
+            np.array(detections.data[ORIENTED_BOX_COORDINATES])
+        )
     raise ValueError("Invalid metric type")

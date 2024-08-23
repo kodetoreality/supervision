@@ -1,19 +1,21 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Any, Iterator, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Set, Tuple
 
 import numpy as np
 import numpy.typing as npt
 
 from supervision.config import ORIENTED_BOX_COORDINATES
-from supervision.metrics.core import MetricTarget, CLASS_ID_NONE
+from supervision.metrics.core import CLASS_ID_NONE, MetricTarget
+from supervision.metrics.utils.object_size import (
+    ObjectSizeCategory,
+    get_object_size_category,
+)
 from supervision.metrics.utils.utils import unify_pad_masks_shape
-from supervision.metrics.utils.object_size import ObjectSizeCategory, get_object_size_category
 
 if TYPE_CHECKING:
     from supervision.detection.core import Detections
+
 
 class MetricData:
     """
@@ -41,10 +43,12 @@ class MetricData:
 
         if detections.confidence is not None:
             self._confidence_list.append(detections.confidence)
-        
+
         if detections.class_id is not None:
             if self._class_agnostic:
-                self._class_id_list.append(np.full(len(detections.class_id), CLASS_ID_NONE, dtype=int))
+                self._class_id_list.append(
+                    np.full(len(detections.class_id), CLASS_ID_NONE, dtype=int)
+                )
             else:
                 self._class_id_list.append(detections.class_id)
 
@@ -54,7 +58,9 @@ class MetricData:
             return {CLASS_ID_NONE}
         return set.union(*[set(class_id) for class_id in self._class_id_list])
 
-    def get(self, class_id: Optional[int]=None, size_category=ObjectSizeCategory.ANY) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
+    def get(
+        self, class_id: Optional[int] = None, size_category=ObjectSizeCategory.ANY
+    ) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
         """
         Get the contents, class_ids and confidences, optionally filtered by class_id and/or size.
 
@@ -65,7 +71,10 @@ class MetricData:
         Returns:
             (np.ndarray): Boxes, masks or obb, all stacked in a single array.
         """
-        if self._metric_target in [MetricTarget.BOXES, MetricTarget.ORIENTED_BOUNDING_BOXES]:
+        if self._metric_target in [
+            MetricTarget.BOXES,
+            MetricTarget.ORIENTED_BOUNDING_BOXES,
+        ]:
             self._merge_boxes()
             if len(self._content_list) == 0:
                 return self._make_empty_content()
@@ -77,11 +86,11 @@ class MetricData:
                 return self._make_empty_content()
             content = self._content_list[0]
 
-        size_mask = np.full(len(content), True) 
+        size_mask = np.full(len(content), True)
         if size_category != ObjectSizeCategory.ANY:
             sizes = get_object_size_category(content, self._metric_target)
             size_mask = sizes == size_category.value
-        
+
         class_mask = np.full(len(content), True)
         if class_id is not None:
             self._merge_class_id()
@@ -89,7 +98,7 @@ class MetricData:
             class_mask = class_ids == class_id
 
         content = content[(size_mask & class_mask)]
-        
+
         self._merge_class_id()
         if len(self._class_id_list) == 0:
             class_ids = np.array([], dtype=int)
@@ -105,18 +114,18 @@ class MetricData:
         confidences = confidences[(size_mask & class_mask)]
 
         return content, class_ids, confidences
-    
+
     def get_class_id(self) -> npt.NDArray[np.int_]:
         self._merge_class_id()
         if len(self._class_id_list) == 0:
             return np.array([], dtype=int)
         return self._class_id_list[0]
-    
+
     def get_confidence(self) -> npt.NDArray[np.float32]:
         self._merge_confidence()
         if len(self._confidence_list) == 0:
             return np.array([], dtype=float)
-        return self._confidence_list[0]    
+        return self._confidence_list[0]
 
     def _detections_content(self, detections: Detections) -> npt.NDArray:
         """Return boxes, masks or oriented bounding boxes from detections."""
@@ -143,23 +152,39 @@ class MetricData:
             return np.empty((0, 8), dtype=np.float32)
         raise ValueError(f"Invalid metric target: {self._metric_target}")
 
-    def _validate_new_entry(self, detections: Detections) -> None:        
-        if len(self._content_list) == 0 or detections.is_empty() or len(detections) == 0:
+    def _validate_new_entry(self, detections: Detections) -> None:
+        if (
+            len(self._content_list) == 0
+            or detections.is_empty()
+            or len(detections) == 0
+        ):
             return
-        
+
         is_self_class_empty = len(self._class_id_list) == 0
         is_self_confidence_empty = len(self._confidence_list) == 0
-        is_detection_class_empty = detections.class_id is None or len(detections.class_id) == 0
-        is_detection_confidence_empty = detections.confidence is None or len(detections.confidence) == 0
+        is_detection_class_empty = (
+            detections.class_id is None or len(detections.class_id) == 0
+        )
+        is_detection_confidence_empty = (
+            detections.confidence is None or len(detections.confidence) == 0
+        )
 
         if is_self_confidence_empty and not is_detection_confidence_empty:
-            raise ValueError("Previously stored detections without confidence, but new detections have it.")
+            raise ValueError(
+                "Previously stored detections without confidence, but new detections have it."
+            )
         if is_self_class_empty and not is_detection_class_empty:
-            raise ValueError("Previously stored detections without class ID, but new detections have it.")
+            raise ValueError(
+                "Previously stored detections without class ID, but new detections have it."
+            )
         if not is_self_class_empty and is_detection_class_empty:
-            raise ValueError("Started storing detections with class ID, but new detections do not have it.")
+            raise ValueError(
+                "Started storing detections with class ID, but new detections do not have it."
+            )
         if not is_self_confidence_empty and is_detection_confidence_empty:
-            raise ValueError("Started storing detections with confidence, but new detections do not have it.")
+            raise ValueError(
+                "Started storing detections with confidence, but new detections do not have it."
+            )
 
     def _validate_shape(self, data: npt.NDArray) -> None:
         if self._metric_target == MetricTarget.BOXES:
@@ -178,7 +203,10 @@ class MetricData:
 
     def _merge_boxes(self):
         """Merge all boxes into a single array."""
-        if self._metric_target not in (MetricTarget.BOXES, MetricTarget.ORIENTED_BOUNDING_BOXES):
+        if self._metric_target not in (
+            MetricTarget.BOXES,
+            MetricTarget.ORIENTED_BOUNDING_BOXES,
+        ):
             raise ValueError("Invalid metric target for merging boxes")
         if len(self._content_list) < 2:
             return
@@ -190,7 +218,7 @@ class MetricData:
             raise ValueError("Invalid metric target for merging masks")
         if len(self._content_list) < 2:
             return
-        
+
         mew_mask_list = unify_pad_masks_shape(*self._content_list)
         self._content_list = [np.vstack(mew_mask_list)]
 
@@ -205,6 +233,7 @@ class MetricData:
         if len(self._confidence_list) < 2:
             return
         self._confidence_list = [np.vstack(self._confidence_list)]
+
 
 class InternalMetricDataStore:
     """
@@ -233,9 +262,13 @@ class InternalMetricDataStore:
         self._data_1.update(data_1)
         self._data_2.update(data_2)
 
-    def get(self, class_id: Optional[int]=None, size_category: ObjectSizeCategory = ObjectSizeCategory.ANY) -> Tuple[
+    def get(
+        self,
+        class_id: Optional[int] = None,
+        size_category: ObjectSizeCategory = ObjectSizeCategory.ANY,
+    ) -> Tuple[
         Tuple[npt.NDArray, npt.NDArray, npt.NDArray],
-        Tuple[npt.NDArray, npt.NDArray, npt.NDArray]
+        Tuple[npt.NDArray, npt.NDArray, npt.NDArray],
     ]:
         """
         Get the data for both sets, optionally filtered by class_id and/or size.
@@ -251,8 +284,7 @@ class InternalMetricDataStore:
             (data_1, class_id_1, confidence_1),
             (data_2, class_id_2, confidence_2),
         )
-    
+
     def get_classes(self) -> Set[int]:
         """Return all class IDs."""
         return self._data_1.get_classes() | self._data_2.get_classes()
-    
