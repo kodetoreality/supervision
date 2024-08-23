@@ -10,8 +10,9 @@ import numpy.typing as npt
 
 from supervision.detection.core import Detections
 from supervision.detection.utils import box_iou_batch
-from supervision.metrics.core import InternalMetricDataStore, Metric, MetricTarget
-from supervision.metrics.utils import ensure_pandas_installed
+from supervision.metrics.core import Metric, MetricTarget
+from supervision.metrics.utils.utils import ensure_pandas_installed
+from supervision.metrics.utils.internal_data_store import InternalMetricDataStore
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -106,31 +107,31 @@ class IntersectionOverUnion(Metric):
             are (N, M) arrays where N is the number of predictions and M is the number
             of targets.
         """
-        ious = {}
-        for class_id, data_1, data_2 in self._store:
-            iou = box_iou_batch(data_1.data, data_2.data).transpose()
-            ious[class_id] = iou
-        return IntersectionOverUnionResult(ious, self._metric_target)
+        ious_by_class = {}
+        for class_id in self._store.get_classes():
+            (data_array_1, _, _), (data_array_2, _, _) = self._store.get(class_id=class_id)
+            ious_by_class[class_id] = box_iou_batch(data_array_1, data_array_2).transpose()
+        return IntersectionOverUnionResult(ious_by_class, self._metric_target)
 
 
 @dataclass
 class IntersectionOverUnionResult:
-    ious: Dict[int, npt.NDArray[np.float32]]
+    ious_by_class: Dict[int, npt.NDArray[np.float32]]
     metric_target: MetricTarget
 
     @property
     def class_ids(self) -> List[int]:
-        return list(self.ious.keys())
+        return list(self.ious_by_class.keys())
 
     def __getitem__(self, class_id: int) -> npt.NDArray[np.float32]:
-        return self.ious[class_id]
+        return self.ious_by_class[class_id]
 
     def __iter__(self):
-        return iter(self.ious.items())
+        return iter(self.ious_by_class.items())
 
     def to_pandas(self) -> Dict[int, "pd.DataFrame"]:
         ensure_pandas_installed()
-        return {class_id: pd.DataFrame(iou) for class_id, iou in self.ious.items()}
+        return {class_id: pd.DataFrame(iou) for class_id, iou in self.ious_by_class.items()}
 
     def plot(self, class_id=None):
         """
@@ -143,7 +144,7 @@ class IntersectionOverUnionResult:
         if class_id:
             self._plot_class(class_id)
         else:
-            for cls in self.ious:
+            for cls in self.ious_by_class:
                 self._plot_class(cls)
 
     def _plot_class(self, class_id):
@@ -154,7 +155,7 @@ class IntersectionOverUnionResult:
         Args:
             class_id (int): The class ID to plot.
         """
-        iou_matrix = self.ious[class_id]
+        iou_matrix = self.ious_by_class[class_id]
 
         if iou_matrix.size == 0:
             print(

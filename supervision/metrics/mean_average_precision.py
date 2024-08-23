@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from itertools import zip_longest
-from typing import List, Union
+from typing import List, Optional, Union
 
 import numpy as np
 
 from supervision.detection.core import Detections
 from supervision.detection.utils import box_iou_batch
-from supervision.metrics.core import InternalMetricDataStore, Metric, MetricTarget
+from supervision.metrics.core import Metric, MetricTarget
+from supervision.metrics.utils.internal_data_store import InternalMetricDataStore
 from supervision.metrics.intersection_over_union import IntersectionOverUnion
+from supervision.metrics.utils.object_size import ObjectSizeCategory
 
 
 class MeanAveragePrecision(Metric):
@@ -33,11 +35,7 @@ class MeanAveragePrecision(Metric):
         self._metric_target = metric_target
         self._class_agnostic = class_agnostic
 
-        self._is_store_shared = False
         self._store = InternalMetricDataStore(metric_target, class_agnostic)
-        self._iou_metric = IntersectionOverUnion(
-            metric_target, class_agnostic, shared_data_store=self._store
-        )
 
         self.reset()
 
@@ -127,25 +125,42 @@ class MeanAveragePrecision(Metric):
         if self._metric_target != MetricTarget.BOXES:
             raise ValueError("Unsupported metric target")
 
-        predictions = [
-            np.hstack(
-                [
-                    self._store._data_1.data,
-                    self._store._data_1.class_id[:, None],
-                    self._store._data_1.confidence[:, None],
-                ]
-            )
-        ]
-        targets = [
-            np.hstack([self._store._data_2.data, self._store._data_2.class_id[:, None]])
-        ]
+        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get()
+        result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
 
-        self._validate_input_tensors(predictions, targets)
+        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get(size_category=ObjectSizeCategory.SMALL)
+        small_result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
+        result.for_small_objects = small_result
+
+        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get(size_category=ObjectSizeCategory.MEDIUM)
+        medium_result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
+        result.for_medium_objects = medium_result
+
+        (predictions, prediction_classes, prediction_confidence), (targets, target_classes, _) = self._store.get(size_category=ObjectSizeCategory.LARGE)
+        large_result = self._compute(predictions, prediction_classes, prediction_confidence, targets, target_classes)
+        result.for_large_objects = large_result
+
+        return result
+
+    def _compute(
+        self,
+        predictions: np.ndarray,
+        prediction_classes: np.ndarray,
+        prediction_confidence: np.ndarray,
+        targets: np.ndarray,
+        target_classes: np.ndarray,
+    ) -> MeanAveragePrecisionResult:
+        predictions = np.hstack(
+            [predictions, prediction_classes[:, None], prediction_confidence[:, None]]
+        )
+        targets = np.hstack([targets, target_classes[:, None]])
+
+        self._validate_input_tensors([predictions], [targets])
         iou_thresholds = np.linspace(0.5, 0.95, 10)
         stats = []
 
         # Gather matching stats for predictions and targets
-        for true_objs, predicted_objs in zip(targets, predictions):
+        for true_objs, predicted_objs in zip([targets], [predictions]):
             if predicted_objs.shape[0] == 0:
                 if true_objs.shape[0]:
                     stats.append(
@@ -263,7 +278,6 @@ class MeanAveragePrecision(Metric):
         prediction_confidence: np.ndarray,
         prediction_class_ids: np.ndarray,
         true_class_ids: np.ndarray,
-        eps: float = 1e-16,
     ) -> np.ndarray:
         """
         Compute the average precision, given the recall and precision curves.
@@ -279,6 +293,8 @@ class MeanAveragePrecision(Metric):
         Returns:
             np.ndarray: Average precision for different IoU levels.
         """
+        eps = 1e-16
+
         sorted_indices = np.argsort(-prediction_confidence)
         matches = matches[sorted_indices]
         prediction_class_ids = prediction_class_ids[sorted_indices]
@@ -342,10 +358,37 @@ class MeanAveragePrecision(Metric):
                     f"Targets must have shape (N, 5). Got {targets[0].shape} instead."
                 )
 
-
 @dataclass
 class MeanAveragePrecisionResult:
     map50_95: float
     map50: float
     map75: float
     per_class_ap50_95: np.ndarray
+    for_small_objects: Optional[MeanAveragePrecisionResult] = None
+    for_medium_objects: Optional[MeanAveragePrecisionResult] = None
+    for_large_objects: Optional[MeanAveragePrecisionResult] = None
+
+    def __str__(self) -> str:
+        out_str = (
+            f"{__class__.__name__}:\n"
+            f"map50_95:  {self.map50_95}\n"
+            f"map50:     {self.map50}\n"
+            f"map75:     {self.map75}\n"
+            f"per_class_ap50_95:"
+        )
+
+        for class_id, ap in enumerate(self.per_class_ap50_95):
+            out_str += f"\n  {class_id}:  {ap}"
+
+        indent = "  "
+        if self.for_small_objects is not None:
+            indented_str = indent + str(self.for_small_objects).replace("\n", f"\n{indent}")
+            out_str += f"\nSmall objects:\n{indented_str}"
+        if self.for_medium_objects is not None:
+            indented_str = indent + str(self.for_medium_objects).replace("\n", f"\n{indent}")
+            out_str += f"\nMedium objects:\n{indented_str}"
+        if self.for_large_objects is not None:
+            indented_str = indent + str(self.for_large_objects).replace("\n", f"\n{indent}")
+            out_str += f"\nLarge objects:\n{indented_str}"
+
+        return out_str
