@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from itertools import zip_longest
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # noqa
 import numpy as np
 import numpy.typing as npt
 

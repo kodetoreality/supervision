@@ -34,7 +34,8 @@ class MetricData:
         if detections.is_empty() or len(detections) == 0:
             return
 
-        # Relies on Detections to ensure that member vars are equal in length or None/empty.
+        # Relies on Detections to ensure that member vars are equal in length
+        # or None/empty.
         self._validate_new_entry(detections)
 
         new_content = self._detections_content(detections)
@@ -62,7 +63,8 @@ class MetricData:
         self, class_id: Optional[int] = None, size_category=ObjectSizeCategory.ANY
     ) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
         """
-        Get the contents, class_ids and confidences, optionally filtered by class_id and/or size.
+        Get the contents, class_ids and confidences, optionally filtered by
+        class_id and/or size.
 
         Args:
             class_id (Optional[int]): The class ID for the data to retrieve
@@ -171,19 +173,23 @@ class MetricData:
 
         if is_self_confidence_empty and not is_detection_confidence_empty:
             raise ValueError(
-                "Previously stored detections without confidence, but new detections have it."
+                "Previously stored detections without confidence,"
+                " but new detections have it."
             )
         if is_self_class_empty and not is_detection_class_empty:
             raise ValueError(
-                "Previously stored detections without class ID, but new detections have it."
+                "Previously stored detections without class ID,"
+                " but new detections have it."
             )
         if not is_self_class_empty and is_detection_class_empty:
             raise ValueError(
-                "Started storing detections with class ID, but new detections do not have it."
+                "Started storing detections with class ID, but"
+                " new detections do not have it."
             )
         if not is_self_confidence_empty and is_detection_confidence_empty:
             raise ValueError(
-                "Started storing detections with confidence, but new detections do not have it."
+                "Started storing detections with confidence,"
+                " but new detections do not have it."
             )
 
     def _validate_shape(self, data: npt.NDArray) -> None:

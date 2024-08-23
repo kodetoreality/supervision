@@ -30,7 +30,8 @@ def get_object_size_category(
 
     Args:
         data (np.ndarray): The object data, shaped (N, ...).
-        metric_target (MetricTarget): Determines whether boxes, masks or oriented bounding boxes are used.
+        metric_target (MetricTarget): Determines whether boxes, masks or
+            oriented bounding boxes are used.
 
     Returns:
         (np.ndarray) The size category of each object, matching
@@ -129,7 +130,8 @@ def get_detection_size_category(
 
     Args:
         xyxyxyxy (np.ndarray): The bounding boxes array shaped (N, 8).
-        metric_target (MetricTarget): Determines whether boxes, masks or oriented bounding boxes are used.
+        metric_target (MetricTarget): Determines whether boxes, masks or
+            oriented bounding boxes are used.
 
     Returns:
         (np.ndarray) The size category of each bounding box, matching

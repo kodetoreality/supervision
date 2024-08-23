@@ -406,7 +406,7 @@ class MeanAveragePrecisionResult:
 
     def __str__(self) -> str:
         out_str = (
-            f"{__class__.__name__}:\n"
+            f"{self.__class__.__name__}:\n"
             f"map50_95:  {self.map50_95}\n"
             f"map50:     {self.map50}\n"
             f"map75:     {self.map75}\n"

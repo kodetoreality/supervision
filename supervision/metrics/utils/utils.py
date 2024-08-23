@@ -38,14 +38,15 @@ def unify_pad_masks_shape(
     *masks: npt.NDArray[np.bool_],
 ) -> List[npt.NDArray[np.bool_]]:
     """
-    Given any number of (N, H, W) mask objects, return copies of the same (H, W), padded to the largest dimensions.
+    Given any number of (N, H, W) mask objects, return copies of the
+    same (H, W), padded to the largest dimensions.
 
     Args:
         *masks (np.ndarray): The mask arrays to unify. Each shaped (_, H, W),
 
     Returns:
-        List[np.ndarray]: The masks, padded to the largest dimensions. Each list element shaped
-            (_, H_max, W_max)
+        List[np.ndarray]: The masks, padded to the largest dimensions.
+            Each list element shaped (_, H_max, W_max)
     """
     new_h = 0
     new_w = 0
