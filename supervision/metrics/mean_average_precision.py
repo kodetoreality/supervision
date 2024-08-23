@@ -194,30 +194,27 @@ class MeanAveragePrecision(Metric):
         iou_thresholds = np.linspace(0.5, 0.95, 10)
         stats = []
 
-        # Gather matching stats for predictions and targets
-        for true_objs, predicted_objs in zip([targets], [predictions]):
-            if predicted_objs.shape[0] == 0:
-                if true_objs.shape[0]:
-                    stats.append(
-                        (
-                            np.zeros((0, iou_thresholds.size), dtype=bool),
-                            *np.zeros((2, 0)),
-                            true_objs[:, 4],
-                        )
+        if targets.shape[0] > 0:
+            if predictions.shape[0] == 0:
+                stats.append(
+                    (
+                        np.zeros((0, iou_thresholds.size), dtype=bool),
+                        np.zeros((0,), dtype=np.float32),
+                        np.zeros((0,), dtype=int),
+                        targets[:, 4],
                     )
-                continue
-
-            if true_objs.shape[0]:
-                matches = self._match_detection_batch(
-                    predicted_objs, true_objs, iou_thresholds
                 )
 
+            else:
+                matches = self._match_detection_batch(
+                    predictions, targets, iou_thresholds
+                )
                 stats.append(
                     (
                         matches,
-                        predicted_objs[:, 5],
-                        predicted_objs[:, 4],
-                        true_objs[:, 4],
+                        prediction_confidence,
+                        prediction_classes,
+                        targets[:, 4],
                     )
                 )
 

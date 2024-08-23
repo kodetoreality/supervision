@@ -79,14 +79,16 @@ class MetricData:
         ]:
             self._merge_boxes()
             if len(self._content_list) == 0:
-                return self._make_empty_content()
-            content = self._content_list[0]
+                content = self._make_empty_content()
+            else:
+                content = self._content_list[0]
 
         elif self._metric_target == MetricTarget.MASKS:
             self._merge_masks()
             if len(self._content_list) == 0:
-                return self._make_empty_content()
-            content = self._content_list[0]
+                content = self._make_empty_content()
+            else:
+                content = self._content_list[0]
 
         size_mask = np.full(len(content), True)
         if size_category != ObjectSizeCategory.ANY:
