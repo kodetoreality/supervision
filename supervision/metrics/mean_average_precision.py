@@ -7,9 +7,9 @@ from typing import List, Optional, Union
 import numpy as np
 
 from supervision.detection.core import Detections
-from supervision.detection.utils import box_iou_batch
+from supervision.detection.utils import box_iou_batch, mask_iou_batch
 from supervision.metrics.core import Metric, MetricTarget
-from supervision.metrics.utils.internal_data_store import InternalMetricDataStore
+from supervision.metrics.utils.internal_data_store import MetricDataStore
 from supervision.metrics.utils.object_size import ObjectSizeCategory
 
 
@@ -20,21 +20,21 @@ class MeanAveragePrecision(Metric):
         class_agnostic: bool = False,
     ):
         """
-        Initialize the Intersection over Union metric.
+        Initialize the Mean Average Precision metric.
 
         Args:
             metric_target (MetricTarget): The type of detection data to use.
             class_agnostic (bool): Whether to treat all data as a single class.
         """
-        if metric_target != MetricTarget.BOXES:
+        self._metric_target = metric_target
+        if self._metric_target == MetricTarget.ORIENTED_BOUNDING_BOXES:
             raise NotImplementedError(
-                f"Intersection over union is not implemented for {metric_target}."
+                "Mean Average Precision is not implemented for oriented bounding boxes."
             )
 
-        self._metric_target = metric_target
         self._class_agnostic = class_agnostic
 
-        self._store = InternalMetricDataStore(metric_target, class_agnostic)
+        self._store = MetricDataStore(metric_target, class_agnostic)
 
         self.reset()
 
@@ -121,9 +121,6 @@ class MeanAveragePrecision(Metric):
             # 0.6649
             ```
         """
-        if self._metric_target != MetricTarget.BOXES:
-            raise ValueError("Unsupported metric target")
-
         (
             (predictions, prediction_classes, prediction_confidence),
             (targets, target_classes, _),
@@ -200,7 +197,15 @@ class MeanAveragePrecision(Metric):
                 )
 
             else:
-                iou = box_iou_batch(targets, predictions)
+                if self._metric_target == MetricTarget.BOXES:
+                    iou = box_iou_batch(targets, predictions)
+                elif self._metric_target == MetricTarget.MASKS:
+                    iou = mask_iou_batch(targets, predictions)
+                else:
+                    raise NotImplementedError(
+                        "Unsupported metric target for IoU calculation"
+                    )
+
                 matches = self._match_detection_batch(
                     prediction_classes, target_classes, iou, iou_thresholds
                 )

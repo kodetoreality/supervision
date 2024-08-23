@@ -11,7 +11,7 @@ import numpy.typing as npt
 from supervision.detection.core import Detections
 from supervision.detection.utils import box_iou_batch
 from supervision.metrics.core import Metric, MetricTarget
-from supervision.metrics.utils.internal_data_store import InternalMetricDataStore
+from supervision.metrics.utils.internal_data_store import MetricDataStore
 from supervision.metrics.utils.utils import ensure_pandas_installed
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ class IntersectionOverUnion(Metric):
         self,
         metric_target: MetricTarget = MetricTarget.BOXES,
         class_agnostic: bool = False,
-        shared_data_store: Optional[InternalMetricDataStore] = None,
+        shared_data_store: Optional[MetricDataStore] = None,
     ):
         """
         Initialize the Intersection over Union metric.
@@ -32,7 +32,7 @@ class IntersectionOverUnion(Metric):
             metric_target (MetricTarget): The type of detection data to use.
             class_agnostic (bool): Whether to treat all data as a single class.
                 Defaults to `False`.
-            shared_data_store (Optional[InternalMetricDataStore]): If you have
+            shared_data_store (Optional[MetricDataStore]): If you have
                 a hierarchy of metrics, you can pass a data store to share it
                 between them, saving memory. The responsibility of updating
                 the store falls on the parent metric (that contain this one).
@@ -50,7 +50,7 @@ class IntersectionOverUnion(Metric):
             self._store = shared_data_store
         else:
             self._is_store_shared = False
-            self._store = InternalMetricDataStore(metric_target, class_agnostic)
+            self._store = MetricDataStore(metric_target, class_agnostic)
 
     def reset(self) -> None:
         if self._is_store_shared:
@@ -109,12 +109,18 @@ class IntersectionOverUnion(Metric):
         """
         ious_by_class = {}
         for class_id in self._store.get_classes():
-            (data_array_1, _, _), (data_array_2, _, _) = self._store.get(
-                class_id=class_id
-            )
-            ious_by_class[class_id] = box_iou_batch(
-                data_array_1, data_array_2
-            ).transpose()
+            if self._metric_target == MetricTarget.BOXES:
+                (data_array_1, _, _), (data_array_2, _, _) = self._store.get(
+                    class_id=class_id
+                )
+                ious_by_class[class_id] = box_iou_batch(
+                    data_array_1, data_array_2
+                ).transpose()
+            else:
+                raise NotImplementedError(
+                    f"Intersection over union is not implemented"
+                    f" for {self._metric_target}."
+                )
         return IntersectionOverUnionResult(ious_by_class, self._metric_target)
 
 

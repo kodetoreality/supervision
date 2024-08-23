@@ -243,7 +243,7 @@ class MetricData:
         self._confidence_list = [np.vstack(self._confidence_list)]
 
 
-class InternalMetricDataStore:
+class MetricDataStore:
     """
     Stores internal data for metrics.
 
